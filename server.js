@@ -41,7 +41,7 @@ app.post('/api/chat', async (req, res) => {
         'Authorization': `Bearer ${OPENAI_API_KEY}`
       },
       body: JSON.stringify({
-        model: 'gpt-4o',
+        model: 'gpt-3.5-turbo', // استخدام نموذج gpt-3.5-turbo بدلاً من gpt-4o لتوافق أفضل مع الخطة المجانية وتقليل الاستهلاك
         messages: [
           {
             role: 'system',
@@ -57,7 +57,7 @@ app.post('/api/chat', async (req, res) => {
           ...formattedMessages
         ],
         temperature: 0.7,
-        max_tokens: 2048
+        max_tokens: 1000 // تقليل عدد التوكنات المستهلكة في الرد الواحد للحفاظ على الكوتا
       })
     });
 
