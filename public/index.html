@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>∞ Infinity Agent</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#07070f;--s1:#0c0c1a;--s2:#101020;--s3:#14142a;
+  --b1:rgba(255,255,255,0.06);--b2:rgba(255,255,255,0.11);--b3:rgba(255,255,255,0.17);
+  --ac:#6c47ff;--ac2:#9d7dff;--ac3:#c4b5fd;
+  --gr:#34d399;--yw:#fbbf24;--rd:#f87171;--bl:#60a5fa;
+  --tx:rgba(255,255,255,0.92);--mu:rgba(255,255,255,0.38);--mu2:rgba(255,255,255,0.58);
+}
+html,body{height:100%;overflow:hidden;background:var(--bg);font-family:'Syne',sans-serif;color:var(--tx)}
+.em{font-family:'Apple Color Emoji','Segoe UI Emoji',sans-serif}
+
+/* APP */
+.app{display:flex;height:100vh}
+
+/* SIDEBAR */
+.sb{width:252px;min-width:252px;background:var(--s1);border-left:1px solid var(--b1);display:flex;flex-direction:column;transition:width .25s;overflow:hidden}
+.sb.hide{width:0;min-width:0}
+
+.sb-top{padding:16px 13px 12px;border-bottom:1px solid var(--b1);flex-shrink:0}
+.logo{display:flex;align-items:center;gap:10px;margin-bottom:13px}
+.logo-orb{width:36px;height:36px;border-radius:11px;flex-shrink:0;background:linear-gradient(135deg,#6c47ff,#4338ca);display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:900;color:#fff;box-shadow:0 0 24px rgba(108,71,255,.35)}
+.logo-name{font-size:15px;font-weight:800;white-space:nowrap}
+.logo-sub{font-size:9px;font-family:'JetBrains Mono',monospace;color:var(--ac2);background:rgba(108,71,255,.14);border:1px solid rgba(108,71,255,.28);padding:1px 7px;border-radius:20px;display:inline-block;margin-top:2px}
+.new-btn{width:100%;padding:9px 12px;background:rgba(108,71,255,.12);border:1px solid rgba(108,71,255,.26);border-radius:10px;color:var(--ac3);font-size:12px;font-family:'Syne',sans-serif;cursor:pointer;text-align:right;display:flex;align-items:center;gap:8px;transition:all .18s}
+.new-btn:hover{background:rgba(108,71,255,.22);border-color:rgba(108,71,255,.44)}
+
+.sb-sec{padding:11px 13px 5px;font-size:9px;color:var(--mu);letter-spacing:.1em;text-transform:uppercase;font-family:'JetBrains Mono',monospace}
+
+/* Tools */
+.tools{padding:0 7px}
+.trow{display:flex;align-items:center;gap:9px;padding:7px 8px;border-radius:10px;cursor:pointer;transition:background .15s;margin-bottom:2px}
+.trow:hover{background:rgba(255,255,255,.04)}
+.trow.on{background:rgba(108,71,255,.09)}
+.tico{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;font-family:'Apple Color Emoji','Segoe UI Emoji',sans-serif}
+.tinfo{flex:1;overflow:hidden}
+.tname{font-size:12px;font-weight:600;white-space:nowrap}
+.tdesc{font-size:9.5px;color:var(--mu);white-space:nowrap}
+.tog{width:32px;height:17px;border-radius:20px;background:rgba(255,255,255,.1);position:relative;cursor:pointer;flex-shrink:0;transition:background .2s}
+.tog.on{background:var(--ac)}
+.tog::after{content:'';position:absolute;top:2.5px;left:2.5px;width:12px;height:12px;border-radius:50%;background:#fff;transition:transform .2s}
+.tog.on::after{transform:translateX(15px)}
+
+/* History */
+.hist{flex:1;overflow-y:auto;padding:0 7px}
+.hist::-webkit-scrollbar{width:3px}
+.hist::-webkit-scrollbar-thumb{background:rgba(108,71,255,.22);border-radius:3px}
+.hi{display:flex;align-items:center;gap:7px;padding:7px 8px;border-radius:9px;cursor:pointer;font-size:11.5px;color:var(--mu2);transition:all .14s;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hi:hover{background:rgba(255,255,255,.04);color:var(--tx)}
+.hi-ico{font-size:12px;flex-shrink:0;font-family:'Apple Color Emoji','Segoe UI Emoji',sans-serif}
+
+/* Status bar bottom */
+.sb-foot{padding:11px 10px;border-top:1px solid var(--b1);background:rgba(0,0,0,.18)}
+.model-row{display:flex;align-items:center;gap:7px;padding:7px 9px;border-radius:9px;background:rgba(108,71,255,.08);border:1px solid rgba(108,71,255,.18)}
+.model-dot{width:7px;height:7px;border-radius:50%;background:var(--gr);flex-shrink:0}
+.model-dot.busy{background:var(--yw);animation:bl 1s infinite}
+@keyframes bl{0%,100%{opacity:1}50%{opacity:.3}}
+.model-name{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--ac2);flex:1}
+.model-ver{font-size:9px;color:var(--mu);font-family:'JetBrains Mono',monospace}
+
+/* MAIN */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+
+/* TOPBAR */
+.topbar{display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid var(--b1);background:var(--s1);flex-shrink:0}
+.menu-btn{width:29px;height:29px;border-radius:8px;border:1px solid var(--b2);background:transparent;color:var(--mu);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;transition:all .15s;flex-shrink:0}
+.menu-btn:hover{background:rgba(255,255,255,.07);color:var(--tx)}
+.tb-mid{flex:1;text-align:center}
+.tb-title{font-size:13px;font-weight:700}
+.tb-sub{font-size:9.5px;color:var(--mu);font-family:'JetBrains Mono',monospace}
+.vtabs{display:flex;gap:3px}
+.vt{padding:5px 12px;border-radius:7px;border:1px solid var(--b1);background:transparent;color:var(--mu);font-size:11px;font-family:'Syne',sans-serif;cursor:pointer;transition:all .15s}
+.vt.on{background:rgba(108,71,255,.15);border-color:rgba(108,71,255,.35);color:var(--ac2)}
+.vt:hover:not(.on){background:rgba(255,255,255,.04)}
+
+/* BODY */
+.body{flex:1;display:flex;overflow:hidden}
+
+/* ACTIVITY */
+.act-panel{width:220px;min-width:220px;background:var(--s2);border-left:1px solid var(--b1);display:flex;flex-direction:column;overflow:hidden}
+.ap-hd{padding:11px 13px;border-bottom:1px solid var(--b1);font-size:10.5px;font-weight:700;color:var(--mu2);display:flex;align-items:center;gap:6px;font-family:'Apple Color Emoji','Segoe UI Emoji','Syne',sans-serif}
+.ap-body{flex:1;overflow-y:auto;padding:10px 10px;gap:0}
+.ap-body::-webkit-scrollbar{width:3px}
+.ap-body::-webkit-scrollbar-thumb{background:rgba(108,71,255,.2);border-radius:3px}
+.ap-empty{color:var(--mu);font-size:11px;text-align:center;margin-top:28px;line-height:2}
+
+.sitem{display:flex;gap:8px;margin-bottom:12px;animation:fu .3s ease}
+@keyframes fu{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.sline{display:flex;flex-direction:column;align-items:center}
+.sdot2{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0;font-family:'Apple Color Emoji','Segoe UI Emoji',sans-serif}
+.sconn{width:1px;flex:1;background:var(--b2);margin:3px 0;min-height:10px}
+.scont{flex:1;padding-top:1px}
+.slabel{font-size:11px;font-weight:600}
+.sdet{font-size:9.5px;color:var(--mu);margin-top:2px;line-height:1.5;word-break:break-all}
+.stime{font-size:8.5px;color:var(--mu);font-family:'JetBrains Mono',monospace;margin-top:2px}
+
+/* CHAT */
+.chat-panel{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.msgs{flex:1;overflow-y:auto;padding:20px 18px;display:flex;flex-direction:column;gap:18px}
+.msgs::-webkit-scrollbar{width:3px}
+.msgs::-webkit-scrollbar-thumb{background:rgba(108,71,255,.25);border-radius:3px}
+
+.mrow{display:flex;gap:10px;animation:fu .3s ease}
+.mrow.user{flex-direction:row-reverse}
+.av{width:33px;height:33px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;font-family:'Apple Color Emoji','Segoe UI Emoji',sans-serif}
+.av.ai{background:linear-gradient(135deg,rgba(108,71,255,.25),rgba(79,70,229,.25));border:1px solid rgba(108,71,255,.3)}
+.av.user{background:rgba(251,191,36,.12);border:1px solid rgba(251,191,36,.24);font-size:12px;font-weight:700;color:var(--yw);font-family:'Syne',sans-serif}
+
+.bub{max-width:78%;padding:12px 15px;border-radius:14px;font-size:13.5px;line-height:1.72}
+.bub.ai{background:rgba(255,255,255,.04);border:1px solid var(--b2);border-radius:4px 14px 14px 14px}
+.bub.user{background:rgba(108,71,255,.15);border:1px solid rgba(108,71,255,.27);border-radius:14px 4px 14px 14px}
+
+.tbadge{display:inline-flex;align-items:center;gap:5px;font-size:9.5px;font-family:'JetBrains Mono',monospace;padding:3px 9px;border-radius:5px;margin-bottom:8px;font-family:'Apple Color Emoji','Segoe UI Emoji','JetBrains Mono',monospace}
+.tbadge.s{background:rgba(108,71,255,.12);color:var(--ac2);border:1px solid rgba(108,71,255,.24)}
+.tbadge.b{background:rgba(52,211,153,.1);color:var(--gr);border:1px solid rgba(52,211,153,.24)}
+.tbadge.ok{background:rgba(52,211,153,.1);color:var(--gr);border:1px solid rgba(52,211,153,.24)}
+
+.sources{margin-top:10px;padding-top:8px;border-top:1px solid var(--b1)}
+.src-lbl{font-size:10px;color:var(--mu);margin-bottom:6px;font-family:'JetBrains Mono',monospace}
+.src-item{display:flex;align-items:center;gap:6px;padding:5px 8px;border-radius:7px;background:rgba(255,255,255,.03);border:1px solid var(--b1);margin-bottom:4px;cursor:pointer;transition:all .14s;text-decoration:none}
+.src-item:hover{background:rgba(108,71,255,.08);border-color:rgba(108,71,255,.25)}
+.src-dot{width:5px;height:5px;border-radius:50%;background:var(--ac);flex-shrink:0}
+.src-title{font-size:10.5px;color:var(--ac2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+.src-domain{font-size:9px;color:var(--mu);font-family:'JetBrains Mono',monospace;flex-shrink:0}
+
+.thinking{display:flex;gap:10px;animation:fu .3s ease}
+.dots{display:flex;gap:5px;align-items:center;padding:4px 0}
+.dots span{width:6px;height:6px;border-radius:50%;background:var(--ac);animation:wave 1.2s infinite ease-in-out}
+.dots span:nth-child(2){animation-delay:.18s}
+.dots span:nth-child(3){animation-delay:.36s}
+@keyframes wave{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-7px)}}
+
+pre.cb{background:rgba(0,0,0,.55);border:1px solid rgba(108,71,255,.22);border-radius:10px;padding:12px 14px;margin:9px 0;font-family:'JetBrains Mono',monospace;font-size:11.5px;color:#c4b5fd;overflow-x:auto;white-space:pre;direction:ltr;position:relative}
+pre.cb .lang-tag{position:absolute;top:6px;left:10px;font-size:8.5px;color:rgba(108,71,255,.55);text-transform:uppercase;letter-spacing:.08em}
+.copy-btn{position:absolute;top:6px;right:8px;padding:3px 9px;background:rgba(108,71,255,.15);border:1px solid rgba(108,71,255,.3);border-radius:5px;color:var(--ac2);font-size:9px;cursor:pointer;font-family:'Syne',sans-serif;transition:all .15s}
+.copy-btn:hover{background:rgba(108,71,255,.28)}
+
+/* INPUT */
+.input-wrap{padding:13px 15px;border-top:1px solid var(--b1);background:rgba(0,0,0,.22);flex-shrink:0}
+.suggs{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:9px}
+.sg{font-size:11px;padding:4px 11px;border-radius:20px;border:1px solid var(--b2);background:rgba(255,255,255,.03);color:var(--mu2);cursor:pointer;font-family:'Syne',sans-serif;transition:all .15s;white-space:nowrap}
+.sg:hover{border-color:rgba(108,71,255,.4);color:var(--tx);background:rgba(108,71,255,.07)}
+.irow{display:flex;align-items:flex-end;gap:8px}
+textarea.mi{flex:1;background:rgba(255,255,255,.05);border:1px solid var(--b2);border-radius:13px;padding:11px 14px;color:var(--tx);font-size:13.5px;font-family:'Syne',sans-serif;resize:none;outline:none;min-height:44px;max-height:130px;line-height:1.55;transition:border-color .2s;direction:auto}
+textarea.mi::placeholder{color:rgba(255,255,255,.2)}
+textarea.mi:focus{border-color:rgba(108,71,255,.5)}
+.send-btn{width:44px;height:44px;background:var(--ac);border:none;border-radius:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s;box-shadow:0 4px 16px rgba(108,71,255,.4)}
+.send-btn:hover{background:#7c5cf3;transform:scale(1.04)}
+.send-btn:active{transform:scale(.97)}
+
+/* BROWSER */
+.browser{flex:1;background:var(--s2);display:flex;flex-direction:column;overflow:hidden;border-left:1px solid var(--b1);min-width:0}
+.bbar{display:flex;align-items:center;gap:6px;padding:9px 12px;border-bottom:1px solid var(--b1);background:var(--s1);flex-shrink:0}
+.bdots{display:flex;gap:5px}
+.bdots span{width:11px;height:11px;border-radius:50%;cursor:pointer;transition:opacity .15s}
+.bdots span:hover{opacity:.75}
+.bdots span:nth-child(1){background:#ff5f57}
+.bdots span:nth-child(2){background:#ffbd2e}
+.bdots span:nth-child(3){background:#28c840}
+.nav-grp{display:flex;gap:3px}
+.nb{width:27px;height:27px;border-radius:7px;border:1px solid var(--b1);background:rgba(255,255,255,.03);color:var(--mu);cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;transition:all .15s;font-family:'Apple Color Emoji','Segoe UI Emoji',sans-serif}
+.nb:hover{background:rgba(255,255,255,.09);color:var(--tx)}
+.url-row{flex:1;display:flex;align-items:center;gap:6px;background:rgba(0,0,0,.4);border:1px solid var(--b2);border-radius:8px;padding:5px 10px}
+.lock{font-size:10px;color:var(--gr);font-family:'Apple Color Emoji','Segoe UI Emoji',sans-serif}
+.url-in{flex:1;background:none;border:none;color:var(--tx);font-size:11.5px;font-family:'JetBrains Mono',monospace;outline:none;direction:ltr}
+.url-in::placeholder{color:var(--mu)}
+.go{padding:4px 11px;background:rgba(108,71,255,.17);border:1px solid rgba(108,71,255,.3);border-radius:7px;color:var(--ac2);font-size:11px;font-family:'Syne',sans-serif;cursor:pointer;transition:all .15s;white-space:nowrap}
+.go:hover{background:rgba(108,71,255,.3)}
+
+.btabs{display:flex;gap:3px;padding:5px 9px;border-bottom:1px solid var(--b1);background:rgba(0,0,0,.12);overflow-x:auto;flex-shrink:0}
+.btabs::-webkit-scrollbar{height:2px}
+.btab{display:flex;align-items:center;gap:5px;padding:4px 11px;border-radius:7px;background:rgba(255,255,255,.04);border:1px solid var(--b1);font-size:11px;color:var(--mu2);cursor:pointer;white-space:nowrap;transition:all .14s;min-width:80px;max-width:150px}
+.btab.on{background:rgba(108,71,255,.14);border-color:rgba(108,71,255,.3);color:var(--tx)}
+.btab-x{margin-left:auto;opacity:.45;font-size:10px;padding-left:4px}
+.btab-x:hover{opacity:1}
+.add-tab{width:26px;height:26px;border-radius:7px;border:1px solid var(--b1);background:rgba(255,255,255,.03);color:var(--mu);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s}
+.add-tab:hover{background:rgba(108,71,255,.14);color:var(--ac2)}
+
+.browser-body{flex:1;position:relative;overflow:hidden}
+#bframe{width:100%;height:100%;border:none;display:none;background:#fff}
+.bload{position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--ac),transparent);animation:ld 1.4s infinite;display:none}
+@keyframes ld{0%{transform:translateX(-100%)}100%{transform:translateX(200%)}}
+
+.bph{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:var(--mu)}
+.ph-orb{width:68px;height:68px;border-radius:18px;background:rgba(108,71,255,.08);border:1px solid rgba(108,71,255,.14);display:flex;align-items:center;justify-content:center;font-size:30px;font-family:'Apple Color Emoji','Segoe UI Emoji',sans-serif}
+.ph-t{font-size:14px;font-weight:600;color:var(--mu2)}
+.ph-s{font-size:11.5px;color:var(--mu)}
+.qsites{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-top:4px}
+.qs2{padding:6px 13px;border:1px solid var(--b2);border-radius:8px;background:rgba(255,255,255,.03);color:var(--mu2);font-size:11px;cursor:pointer;transition:all .14s;display:flex;align-items:center;gap:5px;font-family:'Apple Color Emoji','Segoe UI Emoji','Syne',sans-serif}
+.qs2:hover{border-color:rgba(108,71,255,.38);color:var(--tx);background:rgba(108,71,255,.07)}
+
+/* TOAST */
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--s2);border:1px solid var(--b3);border-radius:11px;padding:9px 18px;font-size:12px;color:var(--tx);z-index:9999;transition:transform .3s ease;pointer-events:none;white-space:nowrap}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.toast.err{border-color:rgba(248,113,113,.4);color:var(--rd)}
+.toast.ok{border-color:rgba(52,211,153,.4);color:var(--gr)}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(108,71,255,.26);border-radius:4px}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- ══ SIDEBAR ══ -->
+<div class="sb" id="sb">
+  <div class="sb-top">
+    <div class="logo">
+      <div class="logo-orb">∞</div>
+      <div>
+        <div class="logo-name">Infinity Agent</div>
+        <span class="logo-sub">GEMINI · UNLIMITED</span>
+      </div>
+    </div>
+    <button class="new-btn" onclick="newChat()">
+      <span class="em">✏️</span> محادثة جديدة
+    </button>
+  </div>
+
+  <div class="sb-sec">الأدوات</div>
+  <div class="tools" id="toolsBox">
+    <div class="trow on" id="tr-search">
+      <div class="tico" style="background:rgba(108,71,255,.14)">🔍</div>
+      <div class="tinfo"><div class="tname">Web Search</div><div class="tdesc">بحث حقيقي بـ Gemini</div></div>
+      <div class="tog on" onclick="togTool(this,'search')"></div>
+    </div>
+    <div class="trow on" id="tr-browse">
+      <div class="tico" style="background:rgba(52,211,153,.12)">🌐</div>
+      <div class="tinfo"><div class="tname">Browser</div><div class="tdesc">متصفح مدمج حقيقي</div></div>
+      <div class="tog on" onclick="togTool(this,'browse')"></div>
+    </div>
+    <div class="trow on" id="tr-code">
+      <div class="tico" style="background:rgba(96,165,250,.12)">💻</div>
+      <div class="tinfo"><div class="tname">Code</div><div class="tdesc">كود باحترافية</div></div>
+      <div class="tog on" onclick="togTool(this,'code')"></div>
+    </div>
+    <div class="trow on" id="tr-analyze">
+      <div class="tico" style="background:rgba(251,191,36,.12)">📊</div>
+      <div class="tinfo"><div class="tname">Analysis</div><div class="tdesc">تحليل البيانات</div></div>
+      <div class="tog on" onclick="togTool(this,'analyze')"></div>
+    </div>
+    <div class="trow on" id="tr-write">
+      <div class="tico" style="background:rgba(248,113,113,.12)">✍️</div>
+      <div class="tinfo"><div class="tname">Writing</div><div class="tdesc">محتوى وترجمة</div></div>
+      <div class="tog on" onclick="togTool(this,'write')"></div>
+    </div>
+  </div>
+
+  <div class="sb-sec">المحادثات السابقة</div>
+  <div class="hist" id="histList"></div>
+
+  <div class="sb-foot">
+    <div class="model-row">
+      <div class="model-dot" id="mdot"></div>
+      <div class="model-name" id="mname">gemini-2.0-flash</div>
+      <div class="model-ver" id="mstatus">جاهز</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MAIN ══ -->
+<div class="main">
+
+  <div class="topbar">
+    <button class="menu-btn" onclick="toggleSb()">☰</button>
+    <div class="tb-mid">
+      <div class="tb-title">∞ Infinity Agent</div>
+      <div class="tb-sub">Gemini 2.0 Flash · Google Search · Real Browser</div>
+    </div>
+    <div class="vtabs">
+      <button class="vt on" onclick="setView('split',this)">تقسيم</button>
+      <button class="vt" onclick="setView('chat',this)">محادثة</button>
+      <button class="vt" onclick="setView('browser',this)">متصفح</button>
+    </div>
+  </div>
+
+  <div class="body">
+
+    <!-- ACTIVITY -->
+    <div class="act-panel" id="actP">
+      <div class="ap-hd"><span class="em">⚡</span> خطوات التنفيذ</div>
+      <div class="ap-body" id="actBody">
+        <div class="ap-empty">سيظهر هنا سجل<br>خطوات العميل تلقائياً</div>
+      </div>
+    </div>
+
+    <!-- CHAT -->
+    <div class="chat-panel" id="chatP">
+      <div class="msgs" id="msgs">
+        <div class="mrow">
+          <div class="av ai">🤖</div>
+          <div class="bub ai">
+            مرحباً حسن! 👋 أنا <strong>Infinity Agent</strong> — سيرفر حقيقي، بحث حقيقي، متصفح حقيقي.<br><br>
+            <span class="em">🔍</span> أبحث في الإنترنت عبر <strong>Google Search</strong> من Gemini<br>
+            <span class="em">🌐</span> أفتح وأعرض أي موقع في المتصفح المدمج<br>
+            <span class="em">💻</span> أكتب كود احترافي بأي لغة<br>
+            <span class="em">📊</span> أحلل وأشرح أي شيء<br><br>
+            جرّب واسألني أي شيء! 🚀
+          </div>
+        </div>
+      </div>
+
+      <div class="input-wrap">
+        <div class="suggs" id="suggs">
+          <span class="sg" onclick="qs('ابحث عن أحدث أخبار الذكاء الاصطناعي اليوم')">🔍 أخبار AI اليوم</span>
+          <span class="sg" onclick="qs('افتح https://github.com')">🌐 GitHub</span>
+          <span class="sg" onclick="qs('اكتب REST API بـ Node.js مع JWT و MongoDB')">💻 Node.js API</span>
+          <span class="sg" onclick="qs('ما هي أفضل لغات البرمجة 2025؟')">📊 لغات 2025</span>
+          <span class="sg" onclick="qs('ابحث عن سعر الإيثيريوم الآن')">💰 Ethereum</span>
+        </div>
+        <div class="irow">
+          <textarea class="mi" id="mi" placeholder="اكتب أمرك... البحث، فتح مواقع، كود، تحليل" rows="1"></textarea>
+          <button class="send-btn" onclick="send()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- BROWSER -->
+    <div class="browser" id="browserP">
+      <div class="bbar">
+        <div class="bdots">
+          <span onclick="browserP.style.display='none'" title="إغلاق"></span>
+          <span title="تصغير"></span>
+          <span onclick="browserP.style.flex='1'" title="تكبير"></span>
+        </div>
+        <div class="nav-grp">
+          <button class="nb" onclick="nbk()">←</button>
+          <button class="nb" onclick="nfw()">→</button>
+          <button class="nb" onclick="nrf()">↻</button>
+          <button class="nb" onclick="loadUrl('https://google.com')" title="الرئيسية">🏠</button>
+        </div>
+        <div class="url-row">
+          <span class="lock em">🔒</span>
+          <input type="text" class="url-in" id="urlIn" placeholder="https://..." />
+        </div>
+        <button class="go" onclick="navigate()">اذهب</button>
+      </div>
+
+      <div class="btabs" id="tabsRow">
+        <div class="btab on" id="tab-0" data-idx="0">
+          <span class="em" style="font-size:11px">🌐</span>
+          <span id="tab-0-t" style="overflow:hidden;text-overflow:ellipsis;flex:1">صفحة جديدة</span>
+        </div>
+        <button class="add-tab" onclick="addTab()">+</button>
+      </div>
+
+      <div class="browser-body">
+        <div class="bload" id="bload"></div>
+        <iframe id="bframe" title="browser"></iframe>
+        <div class="bph" id="bph">
+          <div class="ph-orb em">🌐</div>
+          <div class="ph-t">متصفح مدمج حقيقي</div>
+          <div class="ph-s">يعمل عبر السيرفر — بدون قيود CORS</div>
+          <div class="qsites">
+            <span class="qs2" onclick="loadUrl('https://google.com')">🔎 Google</span>
+            <span class="qs2" onclick="loadUrl('https://github.com')">🐙 GitHub</span>
+            <span class="qs2" onclick="loadUrl('https://wikipedia.org')">📚 Wikipedia</span>
+            <span class="qs2" onclick="loadUrl('https://news.ycombinator.com')">🔥 HackerNews</span>
+            <span class="qs2" onclick="loadUrl('https://developer.mozilla.org/ar')">📖 MDN</span>
+            <span class="qs2" onclick="loadUrl('https://stackoverflow.com')">💬 StackOverflow</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- end body -->
+</div><!-- end main -->
+</div><!-- end app -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── STATE ───
+let history = [];
+let busy = false;
+let activeTools = new Set(['search','browse','code','analyze','write']);
+let chatHist = JSON.parse(localStorage.getItem('ia_hist') || '[]');
+let tabIdx = 1;
+
+renderHist();
+
+// ─── SIDEBAR ───
+function toggleSb(){ document.getElementById('sb').classList.toggle('hide'); }
+
+// ─── TOOLS ───
+function togTool(el,name){
+  el.classList.toggle('on');
+  document.getElementById('tr-'+name).classList.toggle('on');
+  activeTools.has(name) ? activeTools.delete(name) : activeTools.add(name);
+}
+
+// ─── VIEW ───
+function setView(m, btn){
+  document.querySelectorAll('.vt').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  const c=document.getElementById('chatP'),
+        b=document.getElementById('browserP'),
+        a=document.getElementById('actP');
+  if(m==='split'){ c.style.display='flex';b.style.display='flex';a.style.display='flex'; }
+  else if(m==='chat'){ c.style.display='flex';b.style.display='none';a.style.display='flex';c.style.flex='1'; }
+  else{ c.style.display='none';b.style.display='flex';a.style.display='flex';b.style.flex='1'; }
+}
+
+// ─── BROWSER ───
+function navigate(){
+  let url = document.getElementById('urlIn').value.trim();
+  if(!url) return;
+  if(!url.startsWith('http')) url='https://'+url;
+  loadUrl(url);
+}
+document.getElementById('urlIn').addEventListener('keydown',e=>{ if(e.key==='Enter') navigate(); });
+
+function loadUrl(url){
+  document.getElementById('urlIn').value = url;
+  document.getElementById('bph').style.display='none';
+  const f=document.getElementById('bframe'), ld=document.getElementById('bload');
+  f.style.display='block';
+  ld.style.display='block';
+  // Route through our server proxy
+  f.src = '/api/proxy?url='+encodeURIComponent(url);
+  f.onload = ()=>{ ld.style.display='none'; };
+  const domain = url.replace(/https?:\/\//,'').split('/')[0];
+  document.getElementById('tab-0-t').textContent = domain;
+  addAct('🌐','فتح موقع',domain,'b');
+  toast('جاري فتح: '+domain,'ok');
+}
+
+function nbk(){ try{document.getElementById('bframe').contentWindow.history.back();}catch(e){} }
+function nfw(){ try{document.getElementById('bframe').contentWindow.history.forward();}catch(e){} }
+function nrf(){ const f=document.getElementById('bframe'); f.src=f.src; }
+
+function addTab(){
+  const tr=document.getElementById('tabsRow');
+  const id='tab-'+tabIdx;
+  const tab=document.createElement('div');
+  tab.className='btab'; tab.id=id;
+  tab.innerHTML=`<span class="em" style="font-size:11px">🌐</span><span style="overflow:hidden;text-overflow:ellipsis;flex:1">صفحة جديدة</span><span class="btab-x" onclick="event.stopPropagation();this.parentElement.remove()">✕</span>`;
+  tab.onclick=()=>{ document.querySelectorAll('.btab').forEach(t=>t.classList.remove('on')); tab.classList.add('on'); };
+  tr.insertBefore(tab, tr.lastChild);
+  document.querySelectorAll('.btab').forEach(t=>t.classList.remove('on'));
+  tab.classList.add('on');
+  tabIdx++;
+}
+
+// Detect URL commands
+function detectUrl(text){
+  const patterns=[
+    /افتح\s+(https?:\/\/[^\s]+)/i,
+    /افتح\s+([a-zA-Z0-9.-]+\.[a-zA-Z]{2,}[^\s]*)/i,
+    /open\s+(https?:\/\/[^\s]+)/i,
+    /تصفح\s+(https?:\/\/[^\s]+)/i,
+    /visit\s+(https?:\/\/[^\s]+)/i,
+    /اذهب\s+(?:إلى|الى)\s+(https?:\/\/[^\s]+)/i,
+  ];
+  for(const p of patterns){ const m=text.match(p); if(m) return m[1]; }
+  return null;
+}
+
+// ─── ACTIVITY LOG ───
+function addAct(icon, label, detail, type='t'){
+  const body=document.getElementById('actBody');
+  const emp=body.querySelector('.ap-empty');
+  if(emp) emp.remove();
+  const item=document.createElement('div');
+  item.className='sitem';
+  const cols={s:'rgba(108,71,255,.18)',b:'rgba(52,211,153,.14)',t:'rgba(251,191,36,.14)',ok:'rgba(52,211,153,.14)',e:'rgba(248,113,113,.14)'};
+  const now=new Date().toLocaleTimeString('ar',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  item.innerHTML=`
+    <div class="sline">
+      <div class="sdot2" style="background:${cols[type]||cols.t}">${icon}</div>
+      <div class="sconn"></div>
+    </div>
+    <div class="scont">
+      <div class="slabel">${label}</div>
+      ${detail?`<div class="sdet">${detail.substring(0,55)}${detail.length>55?'...':''}</div>`:''}
+      <div class="stime">${now}</div>
+    </div>`;
+  body.appendChild(item);
+  body.scrollTop=body.scrollHeight;
+}
+
+// ─── CHAT HISTORY ───
+function renderHist(){
+  const l=document.getElementById('histList');
+  l.innerHTML='';
+  chatHist.slice(-12).reverse().forEach((h,i)=>{
+    const el=document.createElement('div');
+    el.className='hi';
+    el.innerHTML=`<span class="hi-ico em">💬</span>${h.title.substring(0,30)}${h.title.length>30?'...':''}`;
+    el.onclick=()=>loadHistChat(chatHist.length-1-i);
+    l.appendChild(el);
+  });
+}
+function saveHist(title,msgs){
+  chatHist.push({title,msgs,date:Date.now()});
+  if(chatHist.length>30) chatHist.shift();
+  localStorage.setItem('ia_hist',JSON.stringify(chatHist));
+  renderHist();
+}
+function loadHistChat(idx){
+  const h=chatHist[idx]; if(!h) return;
+  history=[...h.msgs];
+  document.getElementById('msgs').innerHTML='';
+  h.msgs.forEach(m=>{
+    const role=m.role==='user'?'user':'ai';
+    addMsg(role, m.parts?.[0]?.text||'');
+  });
+  toast('تم تحميل المحادثة','ok');
+}
+function newChat(){
+  if(history.length>0){
+    const t=history[0]?.parts?.[0]?.text||'محادثة';
+    saveHist(t.substring(0,40), history);
+  }
+  history=[];
+  document.getElementById('msgs').innerHTML=`
+    <div class="mrow">
+      <div class="av ai em">🤖</div>
+      <div class="bub ai">محادثة جديدة — كيف يمكنني مساعدتك؟ 🚀</div>
+    </div>`;
+  document.getElementById('actBody').innerHTML='<div class="ap-empty">سيظهر هنا سجل<br>خطوات العميل تلقائياً</div>';
+}
+
+// ─── SEND ───
+document.getElementById('mi').addEventListener('keydown',e=>{
+  if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();}
+});
+document.getElementById('mi').addEventListener('input',function(){
+  this.style.height='auto';
+  this.style.height=Math.min(this.scrollHeight,130)+'px';
+});
+function qs(t){ document.getElementById('mi').value=t; send(); }
+
+async function send(){
+  if(busy) return;
+  const inp=document.getElementById('mi');
+  const text=inp.value.trim();
+  if(!text) return;
+  inp.value=''; inp.style.height='auto';
+  document.getElementById('suggs').style.display='none';
+
+  // Browser command?
+  const urlCmd=detectUrl(text);
+  if(urlCmd&&activeTools.has('browse')){
+    addMsg('user',text);
+    const url=urlCmd.startsWith('http')?urlCmd:'https://'+urlCmd;
+    loadUrl(url);
+    addMsg('ai',`✅ تم فتح <strong>${url}</strong> في المتصفح على اليمين.`,'b');
+    setView('split',document.querySelector('.vt'));
+    return;
+  }
+
+  addMsg('user',text);
+  history.push({role:'user',parts:[{text}]});
+  busy=true;
+  setStatus('busy');
+  addThink();
+  addAct('🤔','تحليل الطلب',text,'t');
+
+  const useSearch = activeTools.has('search') &&
+    /ابحث|بحث|أخبار|اليوم|الآن|2025|search|latest|news|recent|أحدث|جديد|سعر|price|today/i.test(text);
+
+  if(useSearch) addAct('🔍','بحث في الإنترنت','Google Search عبر Gemini','s');
+
+  try{
+    const res=await fetch('/api/chat',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({messages:history, useSearch})
+    });
+    const data=await res.json();
+    removeThink();
+
+    if(!res.ok||data.error) throw new Error(data.error||'Server error');
+
+    addMsg('ai', data.text||'...', useSearch?'s':null, data.sources||[]);
+    history.push({role:'model',parts:[{text:data.text||''}]});
+    addAct('✅','اكتمل الرد',(data.text||'').substring(0,50)+'...','ok');
+    if(data.sources?.length) addAct('🔗','مصادر البحث',`${data.sources.length} مصادر`,'s');
+    setStatus('ready');
+  }catch(e){
+    removeThink();
+    setStatus('err');
+    addAct('❌','خطأ',e.message,'e');
+    addMsg('ai','⚠️ خطأ: '+e.message);
+  }
+  busy=false;
+}
+
+// ─── STATUS ───
+function setStatus(s){
+  const dot=document.getElementById('mdot'), txt=document.getElementById('mstatus');
+  dot.className='model-dot';
+  if(s==='busy'){dot.classList.add('busy');txt.textContent='يعمل...';}
+  else if(s==='err'){txt.textContent='خطأ';}
+  else{txt.textContent='جاهز';}
+}
+
+// ─── ADD MSG ───
+function addMsg(role, content, toolType, sources){
+  const msgs=document.getElementById('msgs');
+  const row=document.createElement('div');
+  row.className='mrow'+(role==='user'?' user':'');
+  const av=document.createElement('div');
+  av.className='av '+(role==='user'?'user':'ai em');
+  av.textContent=role==='user'?'أنت':'🤖';
+  const bub=document.createElement('div');
+  bub.className='bub '+(role==='user'?'user':'ai');
+
+  let html='';
+  if(toolType){
+    const bt={s:['🔍','s','بحث ويب حقيقي'],b:['🌐','b','متصفح مدمج'],ok:['✅','ok','اكتمل']};
+    const b=bt[toolType]||['⚡','ok',toolType];
+    html+=`<div class="tbadge ${b[1]} em">${b[0]} ${b[2]}</div><br>`;
+  }
+
+  html+=(content||'')
+    .replace(/```(\w+)?\n([\s\S]*?)```/g,(_,lang,code)=>{
+      const escaped=code.trim().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      return `<pre class="cb"><span class="lang-tag">${lang||'code'}</span><button class="copy-btn" onclick="copyCode(this)">نسخ</button>${escaped}</pre>`;
+    })
+    .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
+    .replace(/`([^`]+)`/g,'<code style="background:rgba(108,71,255,.15);padding:1px 5px;border-radius:4px;font-family:JetBrains Mono,monospace;font-size:12px;color:#c4b5fd">$1</code>')
+    .replace(/^###\s(.+)/gm,'<div style="font-size:13px;font-weight:700;margin:10px 0 4px;color:var(--ac2)">$1</div>')
+    .replace(/^##\s(.+)/gm,'<div style="font-size:14px;font-weight:700;margin:10px 0 4px">$1</div>')
+    .replace(/^[-•]\s(.+)/gm,'<div style="display:flex;gap:6px;margin:3px 0"><span style="color:var(--ac2)">▸</span><span>$1</span></div>')
+    .replace(/\n/g,'<br>');
+
+  bub.innerHTML=html;
+
+  // Sources
+  if(sources&&sources.length>0){
+    const sd=document.createElement('div');
+    sd.className='sources';
+    sd.innerHTML=`<div class="src-lbl">📎 المصادر (${sources.length})</div>`;
+    sources.slice(0,4).forEach(s=>{
+      const domain=s.url?new URL(s.url).hostname:'';
+      const a=document.createElement('a');
+      a.className='src-item'; a.href=s.url; a.target='_blank';
+      a.innerHTML=`<div class="src-dot"></div><div class="src-title">${s.title||domain}</div><div class="src-domain">${domain}</div>`;
+      a.onclick=(e)=>{ e.preventDefault(); loadUrl(s.url); };
+      sd.appendChild(a);
+    });
+    bub.appendChild(sd);
+  }
+
+  row.appendChild(av); row.appendChild(bub);
+  msgs.appendChild(row);
+  msgs.scrollTop=msgs.scrollHeight;
+}
+
+function addThink(){
+  const msgs=document.getElementById('msgs');
+  const row=document.createElement('div');
+  row.className='thinking'; row.id='tRow';
+  row.innerHTML=`<div class="av ai em">🤖</div><div class="bub ai"><div class="dots"><span></span><span></span><span></span></div></div>`;
+  msgs.appendChild(row); msgs.scrollTop=msgs.scrollHeight;
+}
+function removeThink(){ document.getElementById('tRow')?.remove(); }
+
+function copyCode(btn){
+  const pre=btn.parentElement;
+  const text=pre.textContent.replace('نسخ','').replace(pre.querySelector('.lang-tag')?.textContent||'','').trim();
+  navigator.clipboard.writeText(text);
+  btn.textContent='✓ تم'; setTimeout(()=>btn.textContent='نسخ',1800);
+}
+
+function toast(msg,type=''){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className='toast '+type+' show';
+  setTimeout(()=>t.classList.remove('show'),3000);
+}
+</script>
+</body>
+</html>
