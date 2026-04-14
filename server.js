@@ -6,14 +6,14 @@ const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-// استخدام مفتاح OpenAI من متغيرات البيئة
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+// استخدام مفتاح Google Gemini من متغيرات البيئة
+const GEMINI_API_KEY = process.env.GEMINI_KEY;
 
 app.use(cors());
 app.use(express.json({ limit: '4mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// ─── CHAT WITH OPENAI ───
+// ─── CHAT WITH GOOGLE GEMINI ───
 app.post('/api/chat', async (req, res) => {
   try {
     const { messages } = req.body;
@@ -21,31 +21,27 @@ app.post('/api/chat', async (req, res) => {
       return res.status(400).json({ error: 'messages required' });
     }
 
-    if (!OPENAI_API_KEY) {
-      return res.status(500).json({ error: 'OpenAI API Key is not configured in environment variables' });
+    if (!GEMINI_API_KEY) {
+      return res.status(500).json({ error: 'Google Gemini API Key is not configured (GEMINI_KEY)' });
     }
 
-    // تحويل صيغة الرسائل من Gemini إلى OpenAI
-    const formattedMessages = messages.map(msg => {
-      const content = msg.parts ? msg.parts.map(p => p.text).join('') : (msg.content || '');
+    // تحويل صيغة الرسائل لتتوافق مع Gemini 1.5
+    // Gemini 1.5 format: { role: 'user' | 'model', parts: [{ text: '...' }] }
+    const formattedContents = messages.map(msg => {
+      const content = msg.content || (msg.parts ? msg.parts.map(p => p.text).join('') : '');
       return {
-        role: msg.role === 'model' ? 'assistant' : msg.role,
-        content: content
+        role: msg.role === 'assistant' ? 'model' : 'user',
+        parts: [{ text: content }]
       };
     });
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${OPENAI_API_KEY}`
-      },
-      body: JSON.stringify({
-        model: 'gpt-3.5-turbo', // استخدام نموذج gpt-3.5-turbo بدلاً من gpt-4o لتوافق أفضل مع الخطة المجانية وتقليل الاستهلاك
-        messages: [
-          {
-            role: 'system',
-            content: `أنت "Infinity Agent"، عميل ذكاء اصطناعي متقدم يعمل مع المطور حسن.
+    // استخدام Gemini 1.5 Flash - النسخة المجانية والسريعة جداً
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+
+    const body = {
+      system_instruction: {
+        parts: [{
+          text: `أنت "Infinity Agent"، عميل ذكاء اصطناعي متقدم يعمل مع المطور حسن.
 قواعد:
 - أجب دائماً بالعربية إلا إذا طُلب خلاف ذلك أو الكود يتطلب الإنجليزية
 - عند طلب كود: اكتبه كاملاً واحترافياً مع تعليقات
@@ -53,21 +49,29 @@ app.post('/api/chat', async (req, res) => {
 - استخدم emoji لتحسين القراءة
 - لا تقل "لا أستطيع"
 - للكود استخدم \`\`\`language\n...\n\`\`\``
-          },
-          ...formattedMessages
-        ],
-        temperature: 0.7,
-        max_tokens: 1000 // تقليل عدد التوكنات المستهلكة في الرد الواحد للحفاظ على الكوتا
-      })
+        }]
+      },
+      contents: formattedContents,
+      generationConfig: {
+        maxOutputTokens: 2048,
+        temperature: 0.7
+      }
+    };
+
+    const geminiRes = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
     });
 
-    const data = await response.json();
+    const data = await geminiRes.json();
 
-    if (!response.ok) {
-      return res.status(response.status).json({ error: data.error?.message || 'OpenAI error' });
+    if (!geminiRes.ok) {
+      return res.status(geminiRes.status).json({ error: data.error?.message || 'Gemini error' });
     }
 
-    const text = data.choices?.[0]?.message?.content || '';
+    const parts = data.candidates?.[0]?.content?.parts || [];
+    const text = parts.map(p => p.text || '').filter(Boolean).join('\n');
 
     res.json({
       text,
